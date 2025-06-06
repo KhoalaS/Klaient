@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Klaient</string>
+    <string name="playpause_button_play">Play</string>
+    <string name="playpause_button_pause">Pause</string>
+</resources>
