@@ -11,6 +11,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.media3.common.util.UnstableApi
@@ -18,6 +19,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.compose.PlayerSurface
 import androidx.media3.ui.compose.modifiers.resizeWithContentScale
 import androidx.media3.ui.compose.state.rememberPresentationState
+import com.khoalas.klaient.ui.player.Player
 
 @OptIn(UnstableApi::class)
 @Composable
@@ -30,14 +32,9 @@ fun FullscreenVideoScreen(player: ExoPlayer, onExit: () -> Unit) {
     Box(
         Modifier
             .fillMaxSize()
-            .background(Color.Black)
+            .background(Color.Black.copy(alpha = 0.3f))
     ) {
-        PlayerSurface(
-            player = player,
-            modifier = scaledModifier
-        )
-
-        // Back button or controls
+        Player(modifier = scaledModifier, player = player, onFullscreen = {})
         IconButton(
             onClick = { onExit() },
             modifier = Modifier.align(Alignment.TopStart)

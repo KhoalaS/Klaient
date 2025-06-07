@@ -40,31 +40,11 @@ fun VideoPlayerItem(
     onStop: () -> Unit,
     onFullscreen: (uri: String) -> Unit
 ) {
-    var showControls by remember { mutableStateOf(true) }
-    val scope = rememberCoroutineScope()
-    val hideControlsJob = remember { mutableStateOf<Job?>(null) }
-    val hideDelayMillis: Long = 2000
-    val navController = rememberNavController()
-
     val presentationState = rememberPresentationState(player)
     var videoSizeDp by remember { mutableStateOf<Size?>(null) }
     // Holds the video size once available
 
     var isFullscreen by remember { mutableStateOf(false) }
-
-    fun resetAutoHideTimer() {
-        hideControlsJob.value?.cancel()
-        hideControlsJob.value = scope.launch {
-            delay(hideDelayMillis)
-            showControls = false
-        }
-    }
-
-    // Reset timer when user interacts
-    fun onUserInteraction() {
-        showControls = true
-        resetAutoHideTimer()
-    }
 
     DisposableEffect(videoUri) {
         val listener = object : Player.Listener {
@@ -82,7 +62,6 @@ fun VideoPlayerItem(
         player.setMediaItem(MediaItem.fromUri(videoUri))
         player.prepare()
         player.play()
-        onUserInteraction()
 
         // VideoPlayerItem leaves the composition
         onDispose {
@@ -94,8 +73,7 @@ fun VideoPlayerItem(
         }
     }
 
-    val baseModifier =
-        if (isFullscreen) Modifier.fillMaxSize() else Modifier
+    val baseModifier = Modifier
             .fillMaxWidth()
             .aspectRatio(16f / 9f)
     // Important if thumbnail and video have different aspect ratio
@@ -104,25 +82,8 @@ fun VideoPlayerItem(
     } ?: baseModifier
 
 
-    Box(modifier = scaledModifier) {
-        PlayerSurface(
-            player = player,
-            modifier = scaledModifier.noRippleClickable { showControls = !showControls }
-        )
-        AnimatedVisibility(
-            visible = showControls,
-            enter = fadeIn(),
-            exit = fadeOut(),
-        ) {
-            MinimalControls(
-                player, modifier = Modifier
-                    .fillMaxSize()
-                    .align(Alignment.Center), onClick = {
-                    onUserInteraction()
-                }, onFullscreen = {
-                    isFullscreen = !isFullscreen
-                    onFullscreen(videoUri)
-                })
-        }
-    }
+    Player(modifier = scaledModifier, player = player, onFullscreen = {
+        isFullscreen = !isFullscreen
+        onFullscreen(videoUri)
+    })
 }
