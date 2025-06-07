@@ -42,7 +42,7 @@ import com.khoalas.klaient.ui.player.VideoPlayerItem
 import com.khoalas.klaient.viewmodel.FeedViewModel
 
 @Composable
-fun FeedScreen(viewModel: FeedViewModel, modifier: Modifier = Modifier) {
+fun FeedScreen(viewModel: FeedViewModel, modifier: Modifier = Modifier, onFullscreen: (uri: String) -> Unit) {
     val state by viewModel.uiState.collectAsState()
     val listState = rememberSaveable(saver = LazyListState.Saver) {
         LazyListState()
@@ -102,7 +102,8 @@ fun FeedScreen(viewModel: FeedViewModel, modifier: Modifier = Modifier) {
                             if (state.currentPlayingVideo?.url == post.video.url) {
                                 viewModel.stopPlayback()
                             }
-                        }
+                        },
+                        onFullscreen = onFullscreen
                     )
                 } else {
                     VideoThumbnail(

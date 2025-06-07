@@ -14,6 +14,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CropFree
+import androidx.compose.material.icons.filled.Fullscreen
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.ui.Alignment
@@ -25,7 +26,12 @@ import androidx.compose.ui.unit.dp
  * Includes buttons for seeking to a previous/next items or playing/pausing the playback.
  */
 @Composable
-fun MinimalControls(player: Player, modifier: Modifier = Modifier, onClick: () -> Unit) {
+fun MinimalControls(
+    player: Player,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+    onFullscreen: () -> Unit
+) {
     val graySemiTransparentBackground = Color.Gray.copy(alpha = 0.1f)
     val modifierForIconButton =
         Modifier
@@ -43,8 +49,11 @@ fun MinimalControls(player: Player, modifier: Modifier = Modifier, onClick: () -
         ) {
             PlayPauseButton(player, modifierForIconButton, onClick)
         }
-        IconButton(modifier = Modifier.align(Alignment.BottomEnd), onClick = {}) {
-            Icon(Icons.Default.CropFree, contentDescription = null)
+        IconButton(modifier = Modifier.align(Alignment.BottomEnd), onClick = {
+            onFullscreen()
+            onClick()
+        }) {
+            Icon(Icons.Default.Fullscreen, contentDescription = null)
         }
     }
 }

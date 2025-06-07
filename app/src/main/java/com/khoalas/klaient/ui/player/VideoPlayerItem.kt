@@ -26,6 +26,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.compose.PlayerSurface
 import androidx.media3.ui.compose.modifiers.resizeWithContentScale
 import androidx.media3.ui.compose.state.rememberPresentationState
+import androidx.navigation.compose.rememberNavController
 import com.khoalas.klaient.ui.noRippleClickable
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -33,15 +34,23 @@ import kotlinx.coroutines.launch
 
 @OptIn(UnstableApi::class)
 @Composable
-fun VideoPlayerItem(videoUri: String, player: ExoPlayer, onStop: () -> Unit) {
+fun VideoPlayerItem(
+    videoUri: String,
+    player: ExoPlayer,
+    onStop: () -> Unit,
+    onFullscreen: (uri: String) -> Unit
+) {
     var showControls by remember { mutableStateOf(true) }
     val scope = rememberCoroutineScope()
     val hideControlsJob = remember { mutableStateOf<Job?>(null) }
     val hideDelayMillis: Long = 2000
+    val navController = rememberNavController()
 
     val presentationState = rememberPresentationState(player)
     var videoSizeDp by remember { mutableStateOf<Size?>(null) }
     // Holds the video size once available
+
+    var isFullscreen by remember { mutableStateOf(false) }
 
     fun resetAutoHideTimer() {
         hideControlsJob.value?.cancel()
@@ -77,13 +86,18 @@ fun VideoPlayerItem(videoUri: String, player: ExoPlayer, onStop: () -> Unit) {
 
         // VideoPlayerItem leaves the composition
         onDispose {
+            if(!isFullscreen){
+                player.stop()
+            }
             player.removeListener(listener)
-            player.stop()
             onStop()
         }
     }
 
-    val baseModifier = Modifier.fillMaxWidth().aspectRatio(16f/9f)
+    val baseModifier =
+        if (isFullscreen) Modifier.fillMaxSize() else Modifier
+            .fillMaxWidth()
+            .aspectRatio(16f / 9f)
     // Important if thumbnail and video have different aspect ratio
     val scaledModifier = videoSizeDp?.let {
         Modifier.resizeWithContentScale(ContentScale.Fit, videoSizeDp)
@@ -100,10 +114,15 @@ fun VideoPlayerItem(videoUri: String, player: ExoPlayer, onStop: () -> Unit) {
             enter = fadeIn(),
             exit = fadeOut(),
         ) {
-            MinimalControls(player, modifier = Modifier.fillMaxSize()
-                .align(Alignment.Center), onClick = {
-                onUserInteraction()
-            })
+            MinimalControls(
+                player, modifier = Modifier
+                    .fillMaxSize()
+                    .align(Alignment.Center), onClick = {
+                    onUserInteraction()
+                }, onFullscreen = {
+                    isFullscreen = !isFullscreen
+                    onFullscreen(videoUri)
+                })
         }
     }
 }
