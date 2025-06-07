@@ -89,39 +89,45 @@ class MainActivity : ComponentActivity() {
         setContent {
             KlaientTheme {
                 val navController = rememberNavController()
-                val startDestination = Destination.HOME
-                var selectedDestination by rememberSaveable { mutableIntStateOf(startDestination.ordinal) }
+                val navBackStackEntry by navController.currentBackStackEntryAsState()
+                val currentRoute = navBackStackEntry?.destination?.route
 
-                Scaffold(modifier = Modifier.fillMaxSize(), bottomBar = {
-                    NavigationBar(windowInsets = NavigationBarDefaults.windowInsets) {
-                        BottomTabDestinations.forEachIndexed { index, destination ->
-                            NavigationBarItem(
-                                selected = selectedDestination == index,
-                                onClick = {
-                                    navController.navigate(route = destination.route) {
-                                        launchSingleTop = true
-                                        restoreState = true
-                                        popUpTo(navController.graph.startDestinationId) {
-                                            saveState = true
-                                        }
-
-                                    }
-                                    selectedDestination = index
-                                },
-                                icon = {
-                                    Icon(
-                                        destination.icon,
-                                        contentDescription = destination.contentDescription
+                Scaffold(
+                    modifier = Modifier.fillMaxSize(),
+                    bottomBar = {
+                        if(currentRoute in BottomTabDestinations.map { it.route } ){
+                            NavigationBar(windowInsets = NavigationBarDefaults.windowInsets) {
+                                BottomTabDestinations.forEach { destination ->
+                                    val selected = currentRoute == destination.route
+                                    NavigationBarItem(
+                                        selected = selected,
+                                        onClick = {
+                                            if (!selected) {
+                                                navController.navigate(destination.route) {
+                                                    launchSingleTop = true
+                                                    restoreState = true
+                                                    popUpTo(navController.graph.startDestinationId) {
+                                                        saveState = true
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        icon = {
+                                            Icon(
+                                                destination.icon,
+                                                contentDescription = destination.contentDescription
+                                            )
+                                        },
+                                        label = { Text(destination.label) }
                                     )
-                                },
-                                label = { Text(destination.label) }
-                            )
+                                }
+                            }
                         }
                     }
-                }) { contentPadding ->
+                ) { contentPadding ->
                     AppNavHost(
-                        navController,
-                        startDestination,
+                        navController = navController,
+                        startDestination = Destination.HOME,
                         modifier = Modifier.padding(contentPadding)
                     )
                 }
