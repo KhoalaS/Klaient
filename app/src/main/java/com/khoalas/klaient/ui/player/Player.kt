@@ -7,6 +7,8 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -27,7 +29,8 @@ import kotlinx.coroutines.launch
 
 @OptIn(UnstableApi::class)
 @Composable
-fun Player(modifier: Modifier, player: ExoPlayer, onFullscreen: () -> Unit) {
+fun Player(modifier: Modifier, player: ExoPlayer, onFullscreen: () -> Unit, onShowControls: (state: Boolean) -> Unit) {
+    // TODO hoist control state?
     var showControls by remember { mutableStateOf(true) }
     val hideControlsJob = remember { mutableStateOf<Job?>(null) }
     val scope = rememberCoroutineScope()
@@ -41,19 +44,33 @@ fun Player(modifier: Modifier, player: ExoPlayer, onFullscreen: () -> Unit) {
         hideControlsJob.value = scope.launch {
             delay(hideDelayMillis)
             showControls = false
+            onShowControls(false)
         }
     }
 
     // Reset timer when user interacts
     fun onUserInteraction() {
         showControls = true
+        onShowControls(true)
         resetAutoHideTimer()
+    }
+
+    LaunchedEffect(player) {
+        onUserInteraction()
     }
 
     Box(modifier = modifier) {
         PlayerSurface(
             player = player,
-            modifier = scaledModifier.noRippleClickable { showControls = !showControls }
+            modifier = scaledModifier.noRippleClickable {
+                if(showControls){
+                    hideControlsJob.value?.cancel()
+                    showControls = false
+                    onShowControls(false)
+                }else{
+                    onUserInteraction()
+                }
+            }
         )
         AnimatedVisibility(
             visible = showControls,

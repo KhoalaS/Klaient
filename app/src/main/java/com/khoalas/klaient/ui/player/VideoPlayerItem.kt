@@ -85,5 +85,5 @@ fun VideoPlayerItem(
     Player(modifier = scaledModifier, player = player, onFullscreen = {
         isFullscreen = !isFullscreen
         onFullscreen(videoUri)
-    })
+    }, onShowControls = {})
 }

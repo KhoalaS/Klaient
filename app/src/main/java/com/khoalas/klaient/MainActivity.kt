@@ -71,7 +71,7 @@ fun AppNavHost(
         }
         composable("fullscreen") { backStackEntry ->
             val player: ExoPlayer = koinInject<ExoPlayer>()
-            FullscreenVideoScreen(player = player, onExit = {
+            FullscreenVideoScreen(modifier = screenModifier, player = player, onExit = {
                 navController.popBackStack()
             })
         }
