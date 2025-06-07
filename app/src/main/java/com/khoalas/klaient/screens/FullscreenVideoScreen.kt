@@ -4,9 +4,8 @@ import androidx.annotation.OptIn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
@@ -27,6 +26,7 @@ fun FullscreenVideoScreen(player: ExoPlayer, onExit: () -> Unit) {
     val presentationState = rememberPresentationState(player)
     val scaledModifier =
         Modifier.resizeWithContentScale(ContentScale.FillWidth, presentationState.videoSizeDp)
+
     Box(
         Modifier
             .fillMaxSize()
@@ -43,7 +43,7 @@ fun FullscreenVideoScreen(player: ExoPlayer, onExit: () -> Unit) {
             modifier = Modifier.align(Alignment.TopStart)
         ) {
             Icon(
-                Icons.Default.ArrowBack,
+                Icons.AutoMirrored.Default.ArrowBack,
                 contentDescription = "Exit fullscreen",
                 tint = Color.White
             )
