@@ -28,6 +28,7 @@ import androidx.media3.ui.compose.modifiers.resizeWithContentScale
 import androidx.media3.ui.compose.state.rememberPresentationState
 import androidx.navigation.compose.rememberNavController
 import com.khoalas.klaient.ui.noRippleClickable
+import com.khoalas.klaient.ui.player.state.rememberPlayerControlVisibility
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -45,6 +46,8 @@ fun VideoPlayerItem(
     // Holds the video size once available
 
     var isFullscreen by remember { mutableStateOf(false) }
+
+    val controlState = rememberPlayerControlVisibility()
 
     DisposableEffect(videoUri) {
         val listener = object : Player.Listener {
@@ -65,7 +68,7 @@ fun VideoPlayerItem(
 
         // VideoPlayerItem leaves the composition
         onDispose {
-            if(!isFullscreen){
+            if (!isFullscreen) {
                 player.stop()
             }
             player.removeListener(listener)
@@ -74,16 +77,23 @@ fun VideoPlayerItem(
     }
 
     val baseModifier = Modifier
-            .fillMaxWidth()
-            .aspectRatio(16f / 9f)
+        .fillMaxWidth()
+        .aspectRatio(16f / 9f)
     // Important if thumbnail and video have different aspect ratio
     val scaledModifier = videoSizeDp?.let {
         Modifier.resizeWithContentScale(ContentScale.Fit, videoSizeDp)
     } ?: baseModifier
 
 
-    Player(modifier = scaledModifier, player = player, onFullscreen = {
-        isFullscreen = !isFullscreen
-        onFullscreen(videoUri)
-    }, onShowControls = {})
+    Player(
+        modifier = scaledModifier,
+        player = player,
+        onFullscreen = {
+            isFullscreen = !isFullscreen
+            onFullscreen(videoUri)
+        },
+        showControls = controlState.showControls,
+        onUserInteraction = controlState.onUserInteraction,
+        toggleControls = controlState.toggleControls
+    )
 }

@@ -29,44 +29,18 @@ import kotlinx.coroutines.launch
 
 @OptIn(UnstableApi::class)
 @Composable
-fun Player(modifier: Modifier, player: ExoPlayer, onFullscreen: () -> Unit, onShowControls: (state: Boolean) -> Unit) {
-    // TODO hoist control state?
-    var showControls by remember { mutableStateOf(true) }
-    val hideControlsJob = remember { mutableStateOf<Job?>(null) }
-    val scope = rememberCoroutineScope()
-    val hideDelayMillis: Long = 2000
+fun Player(modifier: Modifier, player: ExoPlayer, onFullscreen: () -> Unit, showControls: Boolean, onUserInteraction: () -> Unit, toggleControls: () -> Unit) {
 
     val presentationState = rememberPresentationState(player)
-    val scaledModifier = Modifier.resizeWithContentScale(ContentScale.FillWidth, presentationState.videoSizeDp)
+    val scaledModifier = Modifier.resizeWithContentScale(ContentScale.Fit, presentationState.videoSizeDp)
 
-    fun resetAutoHideTimer() {
-        hideControlsJob.value?.cancel()
-        hideControlsJob.value = scope.launch {
-            delay(hideDelayMillis)
-            showControls = false
-            onShowControls(false)
-        }
-    }
-
-    // Reset timer when user interacts
-    fun onUserInteraction() {
-        showControls = true
-        onShowControls(true)
-        resetAutoHideTimer()
-    }
-
-    LaunchedEffect(player) {
-        onUserInteraction()
-    }
 
     Box(modifier = modifier) {
         PlayerSurface(
             player = player,
             modifier = scaledModifier.noRippleClickable {
                 if(showControls){
-                    hideControlsJob.value?.cancel()
-                    showControls = false
-                    onShowControls(false)
+                  toggleControls()
                 }else{
                     onUserInteraction()
                 }
