@@ -30,6 +30,8 @@ import org.koin.compose.KoinContext
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
+import java.net.URLDecoder
+import java.net.URLEncoder
 
 @Composable
 fun AppNavHost(
@@ -56,7 +58,8 @@ fun AppNavHost(
                             }
                         )
                         FeedScreen(feedViewModel, screenModifier, onFullscreen = { uri ->
-                            navController.navigate("fullscreen")
+                            val encodedUri = URLEncoder.encode(uri, "UTF-8")
+                            navController.navigate("fullscreen/$encodedUri")
                         })
                     }
 
@@ -66,11 +69,16 @@ fun AppNavHost(
                 }
             }
         }
-        composable("fullscreen") { backStackEntry ->
+        composable(
+            "fullscreen/{uri}",
+        ) { backStackEntry ->
+            val uri = backStackEntry.arguments?.getString("uri")
+            val decodedUri = if (uri != null) URLDecoder.decode(uri, "UTF-8") else null
+
             val player: ExoPlayer = koinInject<ExoPlayer>()
             FullscreenVideoScreen(modifier = screenModifier, player = player, onExit = {
                 navController.popBackStack()
-            })
+            }, downloadUri = decodedUri)
         }
     }
 }

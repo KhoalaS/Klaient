@@ -10,10 +10,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -22,14 +24,25 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
+import com.khoalas.klaient.services.DownloadService
 import com.khoalas.klaient.ui.noRippleClickable
 import com.khoalas.klaient.ui.player.Player
 import com.khoalas.klaient.ui.player.state.rememberPlayerControlVisibility
+import kotlinx.coroutines.launch
+import org.koin.compose.koinInject
+import java.util.UUID
 
 @OptIn(UnstableApi::class)
 @Composable
-fun FullscreenVideoScreen(modifier: Modifier, player: ExoPlayer, onExit: () -> Unit) {
+fun FullscreenVideoScreen(
+    modifier: Modifier,
+    player: ExoPlayer,
+    downloadUri: String?,
+    onExit: () -> Unit
+) {
     val controlState = rememberPlayerControlVisibility()
+    val downloadService = koinInject<DownloadService>()
+    val coroutineScope = rememberCoroutineScope()
 
     HideSystemBars()
 
@@ -41,8 +54,6 @@ fun FullscreenVideoScreen(modifier: Modifier, player: ExoPlayer, onExit: () -> U
             })
     )
     {
-
-
         Player(
             modifier = Modifier
                 .fillMaxSize(),
@@ -58,15 +69,39 @@ fun FullscreenVideoScreen(modifier: Modifier, player: ExoPlayer, onExit: () -> U
             enter = fadeIn(),
             exit = fadeOut(),
         ) {
-            IconButton(
-                onClick = { onExit() },
-                modifier = Modifier.align(Alignment.TopStart)
+            Box(
+                modifier = Modifier.fillMaxSize()
             ) {
-                Icon(
-                    Icons.AutoMirrored.Default.ArrowBack,
-                    contentDescription = "Exit fullscreen",
-                    tint = Color.White
-                )
+                IconButton(
+                    onClick = { onExit() },
+                    modifier = Modifier.align(Alignment.TopStart)
+                ) {
+                    Icon(
+                        Icons.AutoMirrored.Default.ArrowBack,
+                        contentDescription = "Exit fullscreen",
+                        tint = Color.White
+                    )
+                }
+
+                IconButton(
+                    onClick = {
+                        coroutineScope.launch {
+                            downloadUri?.let {
+                                downloadService.downloadToDCIM(
+                                    downloadUri,
+                                    UUID.randomUUID().toString()
+                                )
+                            }
+                        }
+                    },
+                    modifier = Modifier.align(Alignment.TopEnd)
+                ) {
+                    Icon(
+                        Icons.Default.Download,
+                        contentDescription = "Download Video",
+                        tint = Color.White
+                    )
+                }
             }
         }
     }
