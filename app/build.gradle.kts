@@ -63,7 +63,7 @@ dependencies {
     implementation(libs.jetbrains.kotlinx.serialization)
 
     implementation(libs.ktor.client.core)
-    implementation(libs.ktor.client.cio)
+    implementation(libs.ktor.client.android)
     implementation(libs.ktor.negotiation)
     implementation(libs.ktor.serialization)
 
