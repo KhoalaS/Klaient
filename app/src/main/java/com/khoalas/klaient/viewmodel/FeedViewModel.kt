@@ -86,7 +86,7 @@ class FeedViewModel(
         if(post.postType == PostType.VIDEO) {
             post.video?.let {
                 viewModelScope.launch {
-                    downloadService.downloadToDCIM2(post.video.url, post.title)
+                    downloadService.downloadToDCIM(post.video.url, post.title)
                 }
             }
         }
