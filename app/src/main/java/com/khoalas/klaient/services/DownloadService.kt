@@ -25,13 +25,13 @@ class DownloadService(private val context: Context, private val client: HttpClie
         val extension = MimeTypeMap.getFileExtensionFromUrl(url)
         val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
 
-        withContext(Dispatchers.IO) {
+        val result = withContext(Dispatchers.IO) {
             val resolver = context.contentResolver
 
             val contentValues = ContentValues().apply {
                 put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
                 put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
-                put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DCIM)
+                put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DCIM + "/Klaient")
                 put(MediaStore.MediaColumns.IS_PENDING, 1)
             }
 
@@ -69,10 +69,16 @@ class DownloadService(private val context: Context, private val client: HttpClie
                 contentValues.clear()
                 contentValues.put(MediaStore.MediaColumns.IS_PENDING, 0)
                 resolver.update(uri, contentValues, null, null)
+                return@withContext true
             } catch (e: Exception) {
                 resolver.delete(uri, null, null) // Cleanup on failure
-                throw e
+                return@withContext false
             }
         }
+        val success = "Download finished"
+        val failure = "Download failed"
+
+        Toast.makeText(context, if (result) success else failure, Toast.LENGTH_SHORT).show()
+
     }
 }
