@@ -26,6 +26,7 @@ import com.khoalas.klaient.screens.FeedScreen
 import com.khoalas.klaient.screens.FullscreenVideoScreen
 import com.khoalas.klaient.ui.theme.KlaientTheme
 import com.khoalas.klaient.viewmodel.FeedViewModel
+import org.koin.compose.KoinContext
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -83,49 +84,51 @@ class MainActivity : ComponentActivity() {
 
         enableEdgeToEdge()
         setContent {
-            KlaientTheme {
-                val navController = rememberNavController()
-                val navBackStackEntry by navController.currentBackStackEntryAsState()
-                val currentRoute = navBackStackEntry?.destination?.route
+            KoinContext {
+                KlaientTheme {
+                    val navController = rememberNavController()
+                    val navBackStackEntry by navController.currentBackStackEntryAsState()
+                    val currentRoute = navBackStackEntry?.destination?.route
 
-                Scaffold(
-                    modifier = Modifier.fillMaxSize(),
-                    bottomBar = {
-                        if(currentRoute in BottomTabDestinations.map { it.route } ){
-                            NavigationBar(windowInsets = NavigationBarDefaults.windowInsets) {
-                                BottomTabDestinations.forEach { destination ->
-                                    val selected = currentRoute == destination.route
-                                    NavigationBarItem(
-                                        selected = selected,
-                                        onClick = {
-                                            if (!selected) {
-                                                navController.navigate(destination.route) {
-                                                    launchSingleTop = true
-                                                    restoreState = true
-                                                    popUpTo(navController.graph.startDestinationId) {
-                                                        saveState = true
+                    Scaffold(
+                        modifier = Modifier.fillMaxSize(),
+                        bottomBar = {
+                            if (currentRoute in BottomTabDestinations.map { it.route }) {
+                                NavigationBar(windowInsets = NavigationBarDefaults.windowInsets) {
+                                    BottomTabDestinations.forEach { destination ->
+                                        val selected = currentRoute == destination.route
+                                        NavigationBarItem(
+                                            selected = selected,
+                                            onClick = {
+                                                if (!selected) {
+                                                    navController.navigate(destination.route) {
+                                                        launchSingleTop = true
+                                                        restoreState = true
+                                                        popUpTo(navController.graph.startDestinationId) {
+                                                            saveState = true
+                                                        }
                                                     }
                                                 }
-                                            }
-                                        },
-                                        icon = {
-                                            Icon(
-                                                destination.icon,
-                                                contentDescription = destination.contentDescription
-                                            )
-                                        },
-                                        label = { Text(destination.label) }
-                                    )
+                                            },
+                                            icon = {
+                                                Icon(
+                                                    destination.icon,
+                                                    contentDescription = destination.contentDescription
+                                                )
+                                            },
+                                            label = { Text(destination.label) }
+                                        )
+                                    }
                                 }
                             }
                         }
+                    ) { contentPadding ->
+                        AppNavHost(
+                            navController = navController,
+                            startDestination = Destination.HOME,
+                            modifier = Modifier.padding(contentPadding)
+                        )
                     }
-                ) { contentPadding ->
-                    AppNavHost(
-                        navController = navController,
-                        startDestination = Destination.HOME,
-                        modifier = Modifier.padding(contentPadding)
-                    )
                 }
             }
         }
