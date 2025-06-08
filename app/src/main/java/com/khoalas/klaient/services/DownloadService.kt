@@ -1,38 +1,23 @@
 package com.khoalas.klaient.services
 
-import android.app.DownloadManager
 import android.content.ContentValues
 import android.content.Context
 import android.net.Uri
-import android.os.Build
-import android.os.Build.VERSION.SDK_INT
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
 import android.webkit.MimeTypeMap
 import android.widget.Toast
-import androidx.core.content.ContextCompat.getSystemService
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.request.get
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.readAvailable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.IOException
-import androidx.core.net.toUri
 import io.ktor.client.request.prepareGet
-import io.ktor.client.statement.bodyAsChannel
 import io.ktor.http.contentLength
-import io.ktor.utils.io.core.remaining
 import io.ktor.utils.io.exhausted
-import io.ktor.utils.io.jvm.javaio.copyTo
-import io.ktor.utils.io.jvm.javaio.toInputStream
-import io.ktor.utils.io.readRemaining
-import kotlinx.coroutines.channels.ClosedReceiveChannelException
-import kotlinx.io.asSink
-import java.io.BufferedOutputStream
-import java.io.OutputStream
 
 
 class DownloadService(private val context: Context, private val client: HttpClient) {
