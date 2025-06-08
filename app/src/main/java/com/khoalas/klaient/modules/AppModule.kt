@@ -17,7 +17,7 @@ fun getPlayer(context: Context) : ExoPlayer {
 
 val appModule = module {
     viewModel { (route: Route) ->
-        FeedViewModel(get(), get(), route)
+        FeedViewModel(get(), get(), get(), route)
     }
     single {
         getPlayer(androidContext())

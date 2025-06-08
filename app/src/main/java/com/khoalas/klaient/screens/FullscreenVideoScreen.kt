@@ -14,24 +14,15 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.ui.compose.PlayerSurface
-import androidx.media3.ui.compose.modifiers.resizeWithContentScale
-import androidx.media3.ui.compose.state.rememberPresentationState
+import com.khoalas.klaient.ui.noRippleClickable
 import com.khoalas.klaient.ui.player.Player
 import com.khoalas.klaient.ui.player.state.rememberPlayerControlVisibility
 
@@ -43,8 +34,13 @@ fun FullscreenVideoScreen(modifier: Modifier, player: ExoPlayer, onExit: () -> U
     HideSystemBars()
 
     Box(
-        modifier.background(Color.Black)
-    ) {
+        modifier
+            .background(Color.Black)
+            .noRippleClickable(onClick = {
+                controlState.toggleControls()
+            })
+    )
+    {
 
 
         Player(
@@ -61,7 +57,7 @@ fun FullscreenVideoScreen(modifier: Modifier, player: ExoPlayer, onExit: () -> U
             visible = controlState.showControls,
             enter = fadeIn(),
             exit = fadeOut(),
-        ){
+        ) {
             IconButton(
                 onClick = { onExit() },
                 modifier = Modifier.align(Alignment.TopStart)

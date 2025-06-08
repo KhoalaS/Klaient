@@ -1,6 +1,7 @@
 package com.khoalas.klaient.ui.player.state
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,6 +38,10 @@ fun rememberPlayerControlVisibility(
     fun onUserInteraction() {
         showControls = true
         resetAutoHideTimer()
+    }
+
+    LaunchedEffect(Unit) {
+        onUserInteraction()
     }
 
     return rememberUpdatedState(

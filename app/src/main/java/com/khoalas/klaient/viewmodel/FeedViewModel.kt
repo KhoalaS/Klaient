@@ -4,8 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.exoplayer.ExoPlayer
 import com.khoalas.klaient.data.model.Post
+import com.khoalas.klaient.data.model.PostType
 import com.khoalas.klaient.data.model.Video
 import com.khoalas.klaient.repo.ContentRepository
+import com.khoalas.klaient.services.DownloadService
 import com.khoalas.klaient.services.Route
 import com.khoalas.klaient.ui.FeedUiState
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,6 +18,7 @@ import kotlinx.coroutines.launch
 
 class FeedViewModel(
     private val contentRepository: ContentRepository,
+    private val downloadService: DownloadService,
     val player: ExoPlayer,
     private val route: Route
 ) :
@@ -75,6 +78,16 @@ class FeedViewModel(
                     if (post.postId == item.postId) item.copy(isSaved = saved) else item
                 }
                 currentState.copy(items = updatedVideos)
+            }
+        }
+    }
+
+    fun downloadMedia(post: Post) {
+        if(post.postType == PostType.VIDEO) {
+            post.video?.let {
+                viewModelScope.launch {
+                    downloadService.downloadToDCIM2(post.video.url, post.title)
+                }
             }
         }
     }

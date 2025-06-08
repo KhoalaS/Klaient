@@ -42,7 +42,11 @@ import com.khoalas.klaient.ui.player.VideoPlayerItem
 import com.khoalas.klaient.viewmodel.FeedViewModel
 
 @Composable
-fun FeedScreen(viewModel: FeedViewModel, modifier: Modifier = Modifier, onFullscreen: (uri: String) -> Unit) {
+fun FeedScreen(
+    viewModel: FeedViewModel,
+    modifier: Modifier = Modifier,
+    onFullscreen: (uri: String) -> Unit
+) {
     val state by viewModel.uiState.collectAsState()
     val listState = rememberSaveable(saver = LazyListState.Saver) {
         LazyListState()
@@ -128,7 +132,10 @@ fun FeedScreen(viewModel: FeedViewModel, modifier: Modifier = Modifier, onFullsc
                         contentDescription = null
                     )
                 }
-                FilledTonalIconButton(onClick = {}, modifier = Modifier.width(64.dp)) {
+                FilledTonalIconButton(
+                    onClick = { viewModel.downloadMedia(post) },
+                    modifier = Modifier.width(64.dp)
+                ) {
                     Icon(Icons.Default.Download, contentDescription = null)
                 }
 

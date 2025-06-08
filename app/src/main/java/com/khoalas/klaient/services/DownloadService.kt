@@ -1,0 +1,142 @@
+package com.khoalas.klaient.services
+
+import android.app.DownloadManager
+import android.content.ContentValues
+import android.content.Context
+import android.net.Uri
+import android.os.Build
+import android.os.Build.VERSION.SDK_INT
+import android.os.Environment
+import android.provider.MediaStore
+import android.util.Log
+import android.webkit.MimeTypeMap
+import android.widget.Toast
+import androidx.core.content.ContextCompat.getSystemService
+import io.ktor.client.HttpClient
+import io.ktor.client.call.body
+import io.ktor.client.request.get
+import io.ktor.utils.io.ByteReadChannel
+import io.ktor.utils.io.readAvailable
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.io.IOException
+import androidx.core.net.toUri
+import io.ktor.client.request.prepareGet
+import io.ktor.client.statement.bodyAsChannel
+import io.ktor.http.contentLength
+import io.ktor.utils.io.core.remaining
+import io.ktor.utils.io.exhausted
+import io.ktor.utils.io.jvm.javaio.copyTo
+import io.ktor.utils.io.jvm.javaio.toInputStream
+import io.ktor.utils.io.readRemaining
+import kotlinx.coroutines.channels.ClosedReceiveChannelException
+import kotlinx.io.asSink
+import java.io.BufferedOutputStream
+import java.io.OutputStream
+
+
+class DownloadService(private val context: Context, private val client: HttpClient) {
+    suspend fun downloadToDCIM(
+        url: String, fileName: String
+    ) {
+        val extension = MimeTypeMap.getFileExtensionFromUrl(url)
+        val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
+
+        withContext(Dispatchers.IO) {
+            val resolver = context.contentResolver
+
+            val contentValues = ContentValues().apply {
+                put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
+                put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
+                put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DCIM + "/Klaient")
+                put(MediaStore.MediaColumns.IS_PENDING, 1)
+            }
+
+            val collection =
+                MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+            val uri = resolver.insert(collection, contentValues)
+                ?: throw IOException("Failed to create new MediaStore record.")
+
+            try {
+                resolver.openOutputStream(uri)?.use { outputStream ->
+                    val response = client.get(url)
+
+                    val channel: ByteReadChannel = response.body()
+                    var count = 0L
+                    val bufferSize = 1024 * 64
+                    val buffer = ByteArray(bufferSize)
+
+                    while (!channel.isClosedForRead) {
+                        val bytesRead = channel.readAvailable(buffer)
+                        if (bytesRead == -1) break
+                        outputStream.write(buffer, 0, bytesRead)
+                    }
+                }
+
+                contentValues.clear()
+                contentValues.put(MediaStore.MediaColumns.IS_PENDING, 0)
+                resolver.update(uri, contentValues, null, null)
+            } catch (e: Exception) {
+                resolver.delete(uri, null, null) // Cleanup on failure
+                throw e
+            }
+        }
+        val toast = Toast.makeText(context, "Download finished", Toast.LENGTH_SHORT)
+        toast.show()
+    }
+
+    suspend fun downloadToDCIM2(url: String, fileName: String) {
+        val extension = MimeTypeMap.getFileExtensionFromUrl(url)
+        val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
+
+        withContext(Dispatchers.IO) {
+            val resolver = context.contentResolver
+
+            val contentValues = ContentValues().apply {
+                put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
+                put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
+                put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DCIM)
+                put(MediaStore.MediaColumns.IS_PENDING, 1)
+            }
+
+            val collection = when {
+                mimeType?.startsWith("image/") == true -> MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                mimeType?.startsWith("video/") == true -> MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+                else -> throw IllegalArgumentException("Unsupported MIME type for DCIM: $mimeType")
+            }
+
+            val uri: Uri = resolver.insert(collection, contentValues)
+                ?: throw IOException("Failed to create new MediaStore record.")
+            try {
+                client.prepareGet(url).execute { httpResponse ->
+                    val channel: ByteReadChannel = httpResponse.body()
+                    var count = 0L
+                    resolver.openOutputStream(uri)?.use { outputStream ->
+                        val buffer = ByteArray(1024 * 32)
+
+                        outputStream.use {
+                            while (!channel.exhausted()) {
+                                val bytesRead = channel.readAvailable(buffer)
+                                if (bytesRead == -1) {
+                                    break
+                                }
+                                count += bytesRead
+                                outputStream.write(buffer, 0, bytesRead)
+                                Log.d(
+                                    "DOWLOAD_DCIM",
+                                    "Received $count bytes from ${httpResponse.contentLength()}"
+                                )
+                            }
+                        }
+                    }
+                }
+                contentValues.clear()
+                contentValues.put(MediaStore.MediaColumns.IS_PENDING, 0)
+                resolver.update(uri, contentValues, null, null)
+            } catch (e: Exception) {
+                resolver.delete(uri, null, null) // Cleanup on failure
+                throw e
+            }
+        }
+    }
+}
