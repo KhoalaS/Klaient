@@ -21,56 +21,7 @@ import io.ktor.utils.io.exhausted
 
 
 class DownloadService(private val context: Context, private val client: HttpClient) {
-    suspend fun downloadToDCIM(
-        url: String, fileName: String
-    ) {
-        val extension = MimeTypeMap.getFileExtensionFromUrl(url)
-        val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
-
-        withContext(Dispatchers.IO) {
-            val resolver = context.contentResolver
-
-            val contentValues = ContentValues().apply {
-                put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
-                put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
-                put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DCIM + "/Klaient")
-                put(MediaStore.MediaColumns.IS_PENDING, 1)
-            }
-
-            val collection =
-                MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
-            val uri = resolver.insert(collection, contentValues)
-                ?: throw IOException("Failed to create new MediaStore record.")
-
-            try {
-                resolver.openOutputStream(uri)?.use { outputStream ->
-                    val response = client.get(url)
-
-                    val channel: ByteReadChannel = response.body()
-                    var count = 0L
-                    val bufferSize = 1024 * 64
-                    val buffer = ByteArray(bufferSize)
-
-                    while (!channel.isClosedForRead) {
-                        val bytesRead = channel.readAvailable(buffer)
-                        if (bytesRead == -1) break
-                        outputStream.write(buffer, 0, bytesRead)
-                    }
-                }
-
-                contentValues.clear()
-                contentValues.put(MediaStore.MediaColumns.IS_PENDING, 0)
-                resolver.update(uri, contentValues, null, null)
-            } catch (e: Exception) {
-                resolver.delete(uri, null, null) // Cleanup on failure
-                throw e
-            }
-        }
-        val toast = Toast.makeText(context, "Download finished", Toast.LENGTH_SHORT)
-        toast.show()
-    }
-
-    suspend fun downloadToDCIM2(url: String, fileName: String) {
+    suspend fun downloadToDCIM(url: String, fileName: String) {
         val extension = MimeTypeMap.getFileExtensionFromUrl(url)
         val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
 
