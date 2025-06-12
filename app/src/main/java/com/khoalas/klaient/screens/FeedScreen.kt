@@ -65,6 +65,7 @@ fun FeedScreen(
             }
     }
 
+    // TODO Scroll jank for different sized images/thumbnails
     LazyColumn(
         state = listState,
         modifier = modifier
