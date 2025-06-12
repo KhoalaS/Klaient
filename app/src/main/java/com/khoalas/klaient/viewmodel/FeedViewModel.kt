@@ -29,13 +29,28 @@ class FeedViewModel(
     private var page = 1
 
     init {
+        loadInit(false)
+    }
+
+    fun loadInit(withRefresh: Boolean) {
         viewModelScope.launch {
+            page = 1
+
             _uiState.update {
-                it.copy(isLoading = true)
+                if (withRefresh) {
+                    it.copy(isRefreshing = true)
+                } else {
+                    it.copy(isLoading = true)
+                }
             }
             val result = contentRepository.getPosts(route, page)
             _uiState.update {
-                it.copy(isLoading = false, endReached = result.isEmpty(), items = it.items + result)
+                it.copy(
+                    isLoading = false,
+                    endReached = result.isEmpty(),
+                    items = result,
+                    isRefreshing = false
+                )
             }
             page++
         }
