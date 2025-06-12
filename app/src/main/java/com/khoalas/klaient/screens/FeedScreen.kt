@@ -71,11 +71,16 @@ fun FeedScreen(
             }
     }
 
+    LaunchedEffect(state.isRefreshing) {
+        if (!state.isRefreshing) {
+            listState.animateScrollToItem(0)
+        }
+    }
+
     // TODO Scroll jank for different sized images/thumbnails
     PullToRefreshBox(modifier = modifier, isRefreshing = state.isRefreshing, onRefresh = {
         scope.launch {
             viewModel.loadInit(true)
-            listState.animateScrollToItem(0)
         }
     }) {
         LazyColumn(
