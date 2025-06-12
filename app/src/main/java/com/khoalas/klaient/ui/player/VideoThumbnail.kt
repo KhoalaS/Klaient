@@ -3,7 +3,6 @@ package com.khoalas.klaient.ui.player
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -23,14 +22,13 @@ fun VideoThumbnail(
     imageUrl: String,
     onClick: () -> Unit,
 ) {
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box {
         AsyncImage(
             contentScale = ContentScale.FillWidth,
             model = imageUrl,
             contentDescription = null,
             modifier = Modifier
                 .fillMaxWidth()
-
         )
 
         Icon(
