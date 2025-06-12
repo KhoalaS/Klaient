@@ -6,7 +6,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -43,16 +42,14 @@ fun rememberPlayerControlVisibility(
         onUserInteraction()
     }
 
-    return rememberUpdatedState(
-        PlayerControlState(
-            showControls = showControls,
-            onUserInteraction = ::onUserInteraction,
-            toggleControls = {
-                showControls = !showControls
-                if (showControls) resetAutoHideTimer()
-                else hideJob?.cancel()
-            }
-        )
-    ).value
+    return PlayerControlState(
+        showControls = showControls,
+        onUserInteraction = ::onUserInteraction,
+        toggleControls = {
+            showControls = !showControls
+            if (showControls) resetAutoHideTimer()
+            else hideJob?.cancel()
+        }
+    )
 }
 
