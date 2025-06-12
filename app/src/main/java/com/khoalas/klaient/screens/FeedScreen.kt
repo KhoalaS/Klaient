@@ -37,8 +37,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.khoalas.klaient.data.model.PostType
-import com.khoalas.klaient.ui.player.VideoThumbnail
+import com.khoalas.klaient.ui.feed.PostImage
 import com.khoalas.klaient.ui.player.VideoPlayerItem
+import com.khoalas.klaient.ui.player.VideoThumbnail
 import com.khoalas.klaient.viewmodel.FeedViewModel
 
 @Composable
@@ -115,6 +116,10 @@ fun FeedScreen(
                         onClick = { viewModel.playVideo(post.video) }
                     )
                 }
+            } else if (post.postType == PostType.IMAGE && post.image != null) {
+                PostImage(
+                    imageUrl = post.image,
+                    onClick = {})
             }
 
             Row(

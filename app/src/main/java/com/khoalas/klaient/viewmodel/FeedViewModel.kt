@@ -83,13 +83,32 @@ class FeedViewModel(
     }
 
     fun downloadMedia(post: Post) {
-        if(post.postType == PostType.VIDEO) {
-            post.video?.let {
-                viewModelScope.launch {
-                    downloadService.downloadToDCIM(post.video.url, post.title)
+        when (post.postType) {
+            PostType.IMAGE -> {
+                post.image?.let {
+                    viewModelScope.launch {
+                        downloadService.downloadToDCIM(post.image, post.title)
+                    }
                 }
             }
+
+            PostType.TEXT -> {
+                // TODO
+            }
+
+            PostType.VIDEO -> {
+                post.video?.let {
+                    viewModelScope.launch {
+                        downloadService.downloadToDCIM(post.video.url, post.title)
+                    }
+                }
+            }
+
+            PostType.GALLERY -> {
+                // TODO
+            }
         }
+
     }
 
     override fun onCleared() {
