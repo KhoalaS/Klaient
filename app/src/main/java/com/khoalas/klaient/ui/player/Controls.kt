@@ -51,7 +51,7 @@ fun MinimalControls(
             onFullscreen()
             onClick()
         }) {
-            Icon(Icons.Default.Fullscreen, contentDescription = null)
+            Icon(Icons.Default.Fullscreen, contentDescription = null, tint = Color.White)
         }
     }
 }

@@ -8,6 +8,7 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
@@ -31,5 +32,6 @@ fun PlayPauseButton(player: Player, modifier: Modifier = Modifier, onClick: () -
             state.onClick()
             onClick()
         }),
+        tint = Color.White
     )
 }

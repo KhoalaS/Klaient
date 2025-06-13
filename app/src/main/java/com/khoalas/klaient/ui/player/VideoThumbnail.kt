@@ -36,7 +36,7 @@ fun VideoThumbnail(
                 .size(48.dp)
                 .background(Color.Gray.copy(alpha = 0.1f), CircleShape)
                 .align(Alignment.Center)
-                .clickable(onClick = onClick)
+                .clickable(onClick = onClick), tint = Color.White
         )
 
     }
