@@ -9,7 +9,7 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
-fun getPlayer(context: Context) : ExoPlayer {
+fun getPlayer(context: Context): ExoPlayer {
     val player = ExoPlayer.Builder(context).build()
     player.repeatMode = REPEAT_MODE_ALL
     return player
