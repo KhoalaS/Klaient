@@ -4,8 +4,12 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -17,6 +21,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -26,7 +35,9 @@ import androidx.navigation.compose.rememberNavController
 import com.khoalas.klaient.screens.FeedScreen
 import com.khoalas.klaient.screens.FullscreenVideoScreen
 import com.khoalas.klaient.ui.theme.KlaientTheme
+import com.khoalas.klaient.viewmodel.ActivityViewModel
 import com.khoalas.klaient.viewmodel.FeedViewModel
+import kotlinx.coroutines.launch
 import org.koin.compose.KoinContext
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
@@ -40,13 +51,12 @@ fun AppNavHost(
     navController: NavHostController,
     startDestination: Destination,
     modifier: Modifier = Modifier,
+    activityViewModel: ActivityViewModel
 ) {
     NavHost(
         navController,
         startDestination = startDestination.route,
-        modifier = modifier,
     ) {
-        val screenModifier = Modifier.fillMaxSize()
         Destination.entries.forEach { destination ->
             composable(destination.route) { backstackEntry ->
                 when (destination) {
@@ -59,7 +69,8 @@ fun AppNavHost(
                                 )
                             }
                         )
-                        FeedScreen(feedViewModel, screenModifier, onFullscreen = { uri ->
+                        FeedScreen(feedViewModel, modifier, onFullscreen = { uri ->
+                            activityViewModel.setStatusBarHidden(true)
                             val encodedUri = URLEncoder.encode(uri, "UTF-8")
                             navController.navigate("fullscreen/$encodedUri")
                         })
@@ -78,8 +89,14 @@ fun AppNavHost(
             val decodedUri = if (uri != null) URLDecoder.decode(uri, "UTF-8") else null
 
             val player: ExoPlayer = koinInject<ExoPlayer>()
+
+            val screenModifier = Modifier
+                .fillMaxSize()
+                .padding(WindowInsets.statusBars.asPaddingValues())
+
             FullscreenVideoScreen(modifier = screenModifier, player = player, onExit = {
                 navController.popBackStack()
+                activityViewModel.setStatusBarHidden(false)
             }, downloadUri = decodedUri)
         }
     }
@@ -92,9 +109,28 @@ class MainActivity : ComponentActivity() {
 
         super.onCreate(savedInstanceState)
 
+        val activityViewModel: ActivityViewModel by viewModels()
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                activityViewModel.isStatusBarHidden.collect { hidden ->
+                    if (hidden) {
+                        WindowInsetsControllerCompat(window, window.decorView)
+                            .hide(WindowInsetsCompat.Type.statusBars())
+                    } else {
+                        WindowInsetsControllerCompat(window, window.decorView)
+                            .show(WindowInsetsCompat.Type.statusBars())
+                    }
+                }
+            }
+        }
+
+
         enableEdgeToEdge()
 
         this.window.isNavigationBarContrastEnforced = false
+
+
         setContent {
             KoinContext {
                 KlaientTheme {
@@ -138,7 +174,8 @@ class MainActivity : ComponentActivity() {
                         AppNavHost(
                             navController = navController,
                             startDestination = Destination.HOME,
-                            modifier = Modifier.padding(contentPadding)
+                            modifier = Modifier.padding(contentPadding),
+                            activityViewModel = activityViewModel
                         )
                     }
                 }
